@@ -1,3 +1,6 @@
+//https://www.instructables.com/Arduino-and-Port-Manipulation/
+//https://extremeelectronics.co.in/avr-tutorials/programming-in-c-tips-for-embedded-development/
+
 void setup() {
 // red led pin 13
 DDRB = DDRB | 0b00100000; // 4 bytes
