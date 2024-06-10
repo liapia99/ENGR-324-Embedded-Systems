@@ -15,7 +15,7 @@ forever:
 L2: SBIS PINB, 4 ; Skips below statement if Push-button is not pressed
   RJMP L1
   SBI PORTB, 2 ; Turn ON LED -> PB2 if not pressed
-  SBI PORTB, 3 ; Turn OFF LED -> PB3 if not pressed
+  SBI PORTB, 3 ; Turn ON LED -> PB3 if not pressed
   SBIC PINB, 4 ; Skips below statement if Push-button is pressed
   RJMP L2
 L1: SBI PORTB, 3 ; Turn ON LED -> PB3 if pressed
