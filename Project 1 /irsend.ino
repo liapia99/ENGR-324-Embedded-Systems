@@ -7,16 +7,14 @@ const int BUTTON_ON = 2;
 const int BUTTON_VOLU = 4;
 const int BUTTON_VOLD = 5;
 const int BUTTON_MUT = 6;
-//const int BUTTON_INP = A0;
+const int BUTTON_INP = 7;
 
 IRsend irsend;
-LiquidCrystal_I2C lcd(0x27, 16, 2);
-
-//const int thresholdVoltage = 20;      
+LiquidCrystal_I2C lcd(0x27, 16, 2);    
 
 void setup() {
-  //inMode(BUTTON_INP, INPUT);
   Serial.begin(9600);
+  pinMode(BUTTON_INP, INPUT_PULLUP);
   pinMode(BUTTON_ON, INPUT_PULLUP);
   pinMode(BUTTON_VOLU, INPUT_PULLUP);
   pinMode(BUTTON_VOLD, INPUT_PULLUP);
@@ -24,68 +22,66 @@ void setup() {
 
   lcd.init();
   lcd.backlight();
-  irsend.begin(IR_TRANSMIT_PIN); // Corrected initialization
+  irsend.begin(IR_TRANSMIT_PIN); 
 }
 
 void loop() {
-  //int voltage = analogRead(BUTTON_INP);
-//
-  //if (voltage < thresholdVoltage) { 
-    //unsigned long sCode = 0xE0E040BF; // Example Samsung code for input
-    //rial.print("Transmitting Samsung code: 0x");
-    //Serial.println(sCode, HEX);
-    //lcd.clear();
-    //lcd.print("Input Change");
-    //sendSamsungCode(sCode);
-    //delay(5000);
- // }
+
+  if (digitalRead(BUTTON_INP) == LOW) { 
+    unsigned long sCode = 0x20DFD02F; 
+    Serial.print("Transmitting LG code: 0x");
+    Serial.println(sCode, HEX);
+    lcd.clear();
+    lcd.print("Input");
+    sendLGCode(sCode);
+    delay(5000);
+  }
  
   if (digitalRead(BUTTON_ON) == LOW) {
-    unsigned long sCode = 0xFFFFFFFF; // Samsung code for Power
-    Serial.print("Transmitting Samsung code: 0x");
+    unsigned long sCode = 0x20DF10EF; 
+     Serial.print("Transmitting LG code: 0x");
     Serial.println(sCode, HEX);
     lcd.clear();
     lcd.print("Power");
-    sendSamsungCode(sCode);
-    delay(5000); // wait for 0.5 seconds before sending the next code
+    sendLGCode(sCode);
+    delay(5000);
   }
     
   if (digitalRead(BUTTON_VOLU) == LOW) {
-    unsigned long sCode = 0xE9E70E8C; // Samsung code for Volume Up
-    Serial.print("Transmitting Samsung code: 0x");
+    unsigned long sCode = 0x20DF40BF; 
+    Serial.print("Transmitting LG code: 0x");
     Serial.println(sCode, HEX);
     lcd.clear();
     lcd.print("Volume Up");
-    sendSamsungCode(sCode);
-    delay(5000); // wait for 0.5 seconds before sending the next code
+    sendLGCode(sCode);
+    delay(5000);
   }
     
   if (digitalRead(BUTTON_VOLD) == LOW) {
-    unsigned long sCode = 0xE9E70E8C; // Samsung code for Volume Down
-    Serial.print("Transmitting Samsung code: 0x");
+    unsigned long sCode = 0x20DFC03F; 
+    Serial.print("Transmitting LG code: 0x");
     Serial.println(sCode, HEX);
     lcd.clear();
     lcd.print("Volume Down");
-    sendSamsungCode(sCode);
-    delay(5000); // wait for 0.5 seconds before sending the next code
+    sendLGCode(sCode);
+    delay(5000);
   }
     
   if (digitalRead(BUTTON_MUT) == LOW) {
-    unsigned long sCode = 0xE9E70E8C; // Samsung code for Mute
-    Serial.print("Transmitting Samsung code: 0x");
+    unsigned long sCode = 0x20DF906F; 
+    Serial.print("Transmitting LG code: 0x");
     Serial.println(sCode, HEX);
     lcd.clear();
     lcd.print("Mute");
-    sendSamsungCode(sCode);
-    delay(5000); // wait for 0.5 seconds before sending the next code
+    sendLGCode(sCode);
+    delay(5000); 
   }
 
-  // Modify and add other codes as necessary.
 }
 
-void sendSamsungCode(unsigned long code) {
+void sendLGCode(unsigned long code) {
   for (int i = 0; i < 3; i++) {
-    irsend.sendNEC(code, 32); // send the code using the NEC protocol with 32 bits
-    delay(4000); // delay between each transmission
+    irsend.sendNEC(code, 32); 
+    delay(40); 
   }
 }
