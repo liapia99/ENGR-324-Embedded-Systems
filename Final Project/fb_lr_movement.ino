@@ -12,6 +12,18 @@ const int ch2Pin = A1; // Left/Right Strength
 const int ch3Pin = A2; // Direction (Forward/Backward) and Emergency Brake
 const int ch4Pin = A3; // Left/Right Movement
 
+int pwm;
+int pA;
+int pB;
+
+int speed;
+int direction = 0;
+int turn = 0;
+
+ // Set motor speeds based on direction, speed, and turn
+int m1Speed = (speed + turn) * direction; // Motor 1 speed
+int m2Speed = (speed - turn) * direction; // Motor 2 speed
+
 void setup() {
   Serial.begin(9600);
 
@@ -31,28 +43,19 @@ void loop() {
   int ch3Value = pulseIn(ch3Pin, HIGH, 25000); // Direction (Forward/Backward) and Emergency Brake
   int ch4Value = pulseIn(ch4Pin, HIGH, 25000); // Left/Right Movement
 
-  // Debugging: Print channel values
-  Serial.print("Ch1: ");
-  Serial.print(ch1Value);
-  Serial.print(" | Ch2: ");
-  Serial.print(ch2Value);
-  Serial.print(" | Ch3: ");
-  Serial.print(ch3Value);
-  Serial.print(" | Ch4: ");
-  Serial.println(ch4Value);
 
   // Calculate throttle control
-  int speed;
+  
   if (ch1Value <= 988) {
     speed = 0; // Stop if ch1Value is 988 or lower
   } else {
     // Gradual speed increase
-    speed = map(ch1Value, 988, 2012, 50, 255); // Throttle range: 988 to 2012 -> 50 to 255
-    speed = constrain(speed, 50, 255); // Limit speed to valid range
+    speed = map(ch1Value, 988, 2012, 50, 255); 
+    speed = constrain(speed, 50, 255); 
   }
 
   // Determine direction based on ch3Value
-  int direction = 0;
+  
   if (ch3Value < 1400) {
     direction = 1; // Forward if ch3Value is less than 1400
   } else if (ch3Value > 1700) {
@@ -63,18 +66,20 @@ void loop() {
   if (ch3Value >= 1400 && ch3Value <= 1700) {
     mpower(1, 0); // Stop motor 1
     mpower(2, 0); // Stop motor 2
-    delay(20); // Small delay for stability
-    return; // Exit loop early
+    delay(20); 
+    return; 
   }
 
   // Calculate turning based on ch2Value and ch4Value only if the car is moving
-  int turn = 0;
+  
   if (speed != 0) {
     if (ch4Value < 1490 && ch4Value >= 988) {
       // Turn left
+      speed = 50;
       turn = map(ch2Value, 988, 2012, 0, 255); // Tilting left
     } else if (ch4Value > 1520 && ch4Value <= 2012) {
       // Turn right
+      speed = 50;
       turn = map(ch2Value, 988, 2012, 0, 255); // Tilting right
     } else {
       // No turn
@@ -82,14 +87,11 @@ void loop() {
     }
   }
 
-  // Set motor speeds based on direction, speed, and turn
-  int m1Speed = (speed + turn) * direction; // Motor 1 speed
-  int m2Speed = (speed - turn) * direction; // Motor 2 speed
-
+ 
   mpower(1, m1Speed);
   mpower(2, m2Speed);
 
-  delay(20); // Small delay for stability
+  delay(20); 
 }
 
 void mpower(int motor, int spd) {
@@ -98,17 +100,15 @@ void mpower(int motor, int spd) {
     rotation = 1; // Forward
   } else if (spd < 0) {
     rotation = -1; // Backward
-    spd = -spd; // Make speed positive for PWM
+    spd = -spd; 
   } else {
     rotation = 0; // Stop
   }
   if (spd > 255) {
-    spd = 255; // Limit maximum speed
+    spd = 255; // Limit max speed
   }
 
-  int pwm;
-  int pA;
-  int pB;
+
 
   if (motor == 1) {
     pwm = enA;
