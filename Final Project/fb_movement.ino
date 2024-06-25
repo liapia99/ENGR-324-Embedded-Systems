@@ -8,9 +8,8 @@ const int in4 = 8;
 
 // Pin assignments for channels
 const int ch1Pin = A0; // Throttle (Speed)
-const int ch2Pin = A1; // Left/Right Movement
 const int ch3Pin = A2; // Direction (Forward/Backward)
-
+const int ch4Pin = A3; // Emergency Brake
 
 void setup() {
   Serial.begin(9600);
@@ -24,66 +23,46 @@ void setup() {
   pinMode(in4, OUTPUT);
 }
 
-
 void loop() {
   // Read PWM values from channels
   int ch1Value = pulseIn(ch1Pin, HIGH, 25000); // Throttle (Speed)
-  int ch2Value = pulseIn(ch2Pin, HIGH, 25000); // Left/Right Movement
   int ch3Value = pulseIn(ch3Pin, HIGH, 25000); // Direction (Forward/Backward)
+  int ch4Value = pulseIn(ch4Pin, HIGH, 25000); // Emergency Brake
 
 
 
-  // Emergency brake logic based on ch3 value
-  if (ch3Value >= 1400 && ch3Value <= 1700) {
-    mpower(1, 0); // Stop motor 1
-    mpower(2, 0); // Stop motor 2
-    delay(20); // Small delay for stability
-    return; // Exit loop early
-  }
- // Calculate throttle control
   int speed;
   if (ch1Value <= 988) {
     speed = 0; // Stop if ch1Value is 988 or lower
   } else {
-    // Gradual speed increase
-    speed = map(ch1Value, 988, 2012, 50, 255); // Throttle range: 988 to 2012 -> 50 to 255
+   
+    speed = map(ch1Value, 988, 2012, 50, 255); 
     speed = constrain(speed, 50, 255); // Limit speed to valid range
   }
 
   // Determine direction based on ch3Value
   int direction = 0;
   if (ch3Value < 1400) {
-    direction = -1; // Forward if ch3Value is less than 1400
+    direction = 1; // Forward if ch3Value is less than 1400
   } else if (ch3Value > 1700) {
-    direction = 1; // Backward if ch3Value is greater than 1700
+    direction = -1; // Backward if ch3Value is greater than 1700
   }
 
-  // Calculate left/right movement only if the car is moving (speed != 0)
-  int turn = 0;
-  if (speed != 0) {
-    if (ch2Value < 1490 && ch2Value >= 988) {
-      // Slightly turn left
-      turn = map(ch2Value, 988, 1490, -50, 0); // Tilting left
-    } else if (ch2Value < 988) {
-      // Spin left
-      turn = map(ch2Value, 0, 988, -255, -50); // Spinning left
-    } else if (ch2Value > 1520 && ch2Value <= 2012) {
-      // Slightly turn right
-      turn = map(ch2Value, 1520, 2012, 0, 50); // Tilting right
-    } else if (ch2Value > 2012) {
-      // Spin right
-      turn = map(ch2Value, 2012, 4095, 50, 255); // Spinning right
-    }
+  // Apply emergency brake
+  if (ch4Value > 1500) {
+    speed = 0; // Stop all motors
+    direction = 0; 
   }
 
-  // Set motor speeds based on direction, speed, and turn
-  int m1Speed = speed + turn; // Motor 1 speed
-  int m2Speed = speed - turn; // Motor 2 speed
+
+  int m1Speed = speed * direction; // Motor 1 speed
+  int m2Speed = speed * direction; // Motor 2 speed
+
 
   mpower(1, m1Speed);
   mpower(2, m2Speed);
 
-  delay(20); // Small delay for stability
+  delay(20); 
 }
 
 void mpower(int motor, int spd) {
@@ -113,16 +92,16 @@ void mpower(int motor, int spd) {
     pA = in3;
     pB = in4;
   } else {
-    return; // Invalid motor number
+    return; 
   }
 
   analogWrite(pwm, spd); // Set PWM speed
 
   if (rotation == 1) {
-    digitalWrite(pA, HIGH); // Motor backwards
+    digitalWrite(pA, HIGH); // Motor forward
     digitalWrite(pB, LOW);
   } else if (rotation == -1) {
-    digitalWrite(pA, LOW); // Motor forwards
+    digitalWrite(pA, LOW); // Motor backward
     digitalWrite(pB, HIGH);
   } else {
     digitalWrite(pA, LOW); // Stop motor
